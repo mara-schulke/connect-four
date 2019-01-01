@@ -1,15 +1,13 @@
-pub struct Game {
-
-}
+pub struct Game {}
 
 impl Game {
-    pub fn new() -> Game {
+    pub fn new() -> Self {
         Game {
 
         }
     }
 
     pub fn turn(&self) {
-        println!("TURNnN")
+        println!("turn");
     }
 }
