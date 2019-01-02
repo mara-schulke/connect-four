@@ -4,13 +4,9 @@
 
 // use std::io;
 mod game;
-mod field;
 
-use crate::game::Game as Game;
-use crate::field::Field as Field;
+pub use self::game::Game;
 
 fn main() {
-    let game = Game::new();
-
-    game.turn();
+    let game: Game = Game::new();
 }
