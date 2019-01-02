@@ -6,7 +6,10 @@
 mod game;
 
 pub use self::game::Game;
+pub use self::game::PlayerCount;
 
 fn main() {
-    let game: Game = Game::new();
+    let game: Game = Game::new(
+        PlayerCount::Two
+    );
 }
