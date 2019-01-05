@@ -1,20 +1,6 @@
 pub mod field;
 pub use self::field::Field;
 
-fn matchDecimalEnum <T> ( enum ) -> <T> {
-    match enum {
-        enum::Two => { 2 },
-        enum::Three => { 3 }, 
-        enum::Four => { 4 }
-    };
-}
-
-pub enum PlayerCount {
-    Two,
-    Three,
-    Four
-}
-
 pub struct Game {
     field: Field,
     // players: Players,
@@ -22,9 +8,12 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new( playerCount: PlayerCount, col: u8, row: u8 ) -> Self {
+    pub fn new( playerCount: u8, col: u8, row: u8 ) -> Self {
+        let mut players : [ u8; playerCount ] = []; 
 
+        for 0..playerCount {
 
+        }
 
         Game {
             field: Field::new(),
