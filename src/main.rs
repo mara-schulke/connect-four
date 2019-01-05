@@ -13,4 +13,6 @@ fn main() {
         10, // COLS
         10, // ROWS
     );
+
+    println!("{:?}", game.players );
 }

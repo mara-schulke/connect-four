@@ -3,20 +3,21 @@ pub use self::field::Field;
 
 pub struct Game {
     field: Field,
-    // players: Players,
+    pub players: Vec<u8>,
     curentPlayer: u8
 }
 
 impl Game {
     pub fn new( playerCount: u8, col: u8, row: u8 ) -> Self {
-        let mut players : [ u8; playerCount ] = []; 
+        let mut Players = vec![]; 
 
-        for 0..playerCount {
-
+        for i in 0..playerCount {
+            Players.push( i );
         }
 
         Game {
-            field: Field::new(),
+            field: Field::new(col, row),
+            players: Players,
             curentPlayer: 0
         }
     }
