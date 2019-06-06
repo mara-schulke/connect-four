@@ -1,7 +1,17 @@
 fn main() {
-    let game: Game = Game::new(2);
+    let mut game: Game = Game::new(4);
 
-    game.insert(4);
+    loop {
+        println!(
+            "Player {}, please choose a row to enter your coin!",
+            game.current_player
+        );
+
+        print_game_field(&game.field);
+        // game.current_player = next_player(&game);
+
+        break;
+    }
 }
 
 #[derive(Debug)]
@@ -59,7 +69,7 @@ impl Coin {
 #[derive(Debug)]
 struct Game {
     players: u8,
-    current_player: u32,
+    current_player: u8,
     round: u32,
     field: Vec<Vec<Option<Coin>>>,
 }
@@ -85,10 +95,45 @@ impl Game {
                 vec![None, None, None, None, None, None, None, None],
                 vec![None, None, None, None, None, None, None, None],
                 vec![None, None, None, None, None, None, None, None],
-                vec![None, None, None, None, None, None, None, None],
+                vec![
+                    None,
+                    None,
+                    Some(Coin::new(2, 3, 3)),
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                ],
             ],
         }
     }
+}
 
-    pub fn insert(self, row: usize) {}
+fn next_player(g: &Game) -> u8 {
+    if g.current_player == g.players {
+        return 1;
+    }
+
+    g.current_player + 1
+}
+
+fn print_game_field(field: &Vec<Vec<Option<Coin>>>) {
+    print!("\n");
+
+    for col in field {
+        for coin in col {
+            print!(
+                "[{}]",
+                match coin {
+                    Some(c) => c.symbol.as_str(),
+                    None => " ",
+                }
+            );
+        }
+
+        print!("\n");
+    }
+
+    print!("\n");
 }
