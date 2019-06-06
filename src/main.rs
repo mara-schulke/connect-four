@@ -1,7 +1,10 @@
 fn main() {
     let game: Game = Game::new(2);
+
+    game.insert(4);
 }
 
+#[derive(Debug)]
 enum PlayerSymbol {
     First,
     Second,
@@ -30,13 +33,16 @@ impl PlayerSymbol {
     }
 }
 
+#[derive(Debug)]
 struct Position {
     pub x: i32,
     pub y: i32,
 }
 
+#[derive(Debug)]
 struct Coin {
     player_id: u8,
+    symbol: PlayerSymbol,
     pos: Position,
 }
 
@@ -44,14 +50,18 @@ impl Coin {
     pub fn new(player_id: u8, x: i32, y: i32) -> Coin {
         Coin {
             player_id,
+            symbol: PlayerSymbol::from_u8(player_id).unwrap(),
             pos: Position { x, y },
         }
     }
 }
 
+#[derive(Debug)]
 struct Game {
     players: u8,
-    field: Field,
+    current_player: u32,
+    round: u32,
+    field: Vec<Vec<Option<Coin>>>,
 }
 
 impl Game {
@@ -64,20 +74,10 @@ impl Game {
 
         Game {
             players,
-            field: Field::new(),
-        }
-    }
-}
-
-struct Field {
-    coins: Vec<Vec<Option<Coin>>>,
-}
-
-impl Field {
-    pub fn new() -> Field {
-        // initialize a 8 x 8 field
-        Field {
-            coins: vec![
+            current_player: 1,
+            round: 0,
+            // initialize a 8 x 8 field
+            field: vec![
                 vec![None, None, None, None, None, None, None, None],
                 vec![None, None, None, None, None, None, None, None],
                 vec![None, None, None, None, None, None, None, None],
@@ -89,4 +89,6 @@ impl Field {
             ],
         }
     }
+
+    pub fn insert(self, row: usize) {}
 }
