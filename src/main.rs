@@ -1,34 +1,65 @@
 use std::io;
 
 fn main() {
-    let mut game: Game = Game::new(4);
+    clear_screen();
+
+    print_logo();
+
+    let mut player_count: u8;
+    println!("Please choose a player amount from 2 to 4:");
+    loop {
+        player_count = match input().parse() {
+            Ok(val) => val,
+            Err(_) => {
+                println!("Please enter a number, nothing else:");
+                continue;
+            }
+        };
+
+        if player_count < 2 || player_count > 4 {
+            println!("Please choose a player amount from 2 to 4:");
+            continue;
+        }
+
+        break;
+    }
+
+    let mut game: Game = Game::new(2);
 
     loop {
         clear_screen();
-        println!(
-            "Player {}, please choose a row to enter your coin!",
-            game.current_player
-        );
+
+        println!("Player: {} - Round: {}", game.current_player, game.round);
 
         game.print_field();
 
+        if game.round > (8 * 8) {
+            println!("Game draw! No fields left..");
+
+            break;
+        }
+
         // Handle input
-        println!("Enter column to insert coin:");
+        println!("Please choose a column to enter your coin!");
         let mut column: usize;
         loop {
             // make this a cleaner exit (or try again)
             column = match input().parse() {
                 Ok(val) => val,
                 Err(_) => {
-                    exit_with_message("Failed to parse input into a number!");
-                    0
+                    println!("Please enter a number, nothing else:");
+                    continue;
                 }
             };
 
-            if column > 8 {
+            if column > 8 || column < 1 {
                 println!("Please choose a column from 1 to 8:");
                 continue;
-            } else if game.is_col_full(column) {
+            } else {
+                column -= 1;
+            }
+
+            if game.is_col_full(column) {
                 println!("Please choose a column thats not full:");
                 continue;
             }
@@ -38,42 +69,43 @@ fn main() {
 
         game.insert_coin(column);
 
-        game.current_player = game.next_player();
-
-        if game.over {
-            let winner_id = game.get_winner().unwrap();
+        if let Some(winner_id) = game.get_winner() {
+            clear_screen();
             println!("Player {:?} won the game!", winner_id);
-
+            game.print_field();
             break;
         }
+
+        game.current_player = game.next_player();
+        game.round = game.next_round();
     }
 }
 
 #[derive(Debug)]
 enum PlayerSymbol {
-    First,
-    Second,
-    Third,
-    Fourth,
+    One,
+    Two,
+    Three,
+    Four,
 }
 
 impl PlayerSymbol {
     pub fn from_u8(s: u8) -> Option<PlayerSymbol> {
         match s {
-            1 => Some(PlayerSymbol::First),
-            2 => Some(PlayerSymbol::Second),
-            3 => Some(PlayerSymbol::Third),
-            4 => Some(PlayerSymbol::Fourth),
+            1 => Some(PlayerSymbol::One),
+            2 => Some(PlayerSymbol::Two),
+            3 => Some(PlayerSymbol::Three),
+            4 => Some(PlayerSymbol::Four),
             _ => None,
         }
     }
 
     pub fn as_str(&self) -> &'static str {
         match self {
-            PlayerSymbol::First => "x",
-            PlayerSymbol::Second => "o",
-            PlayerSymbol::Third => "+",
-            PlayerSymbol::Fourth => "*",
+            PlayerSymbol::One => "x",
+            PlayerSymbol::Two => "o",
+            PlayerSymbol::Three => "+",
+            PlayerSymbol::Four => "*",
         }
     }
 }
@@ -113,7 +145,7 @@ impl Game {
         Game {
             players,
             current_player: 1,
-            round: 0,
+            round: 1,
             over: false,
             // initialize a 8 x 8 field
             field: vec![
@@ -134,10 +166,8 @@ impl Game {
         let mut y: usize = 0;
 
         for row in &self.field {
-            if let Some(coin) = &row[x] {
-                println!("{:?}", coin);
+            if let Some(_) = &row[x] {
                 break;
-                // exit_with_message("found coin");
             }
 
             y += 1;
@@ -146,8 +176,10 @@ impl Game {
         y -= 1;
 
         self.field[y][x] = Some(Coin::new(self.current_player));
+    }
 
-        println!("{}", y);
+    fn get_winner(&self) -> Option<u8> {
+        Some(self.current_player)
     }
 
     fn is_col_full(&self, x: usize) -> bool {
@@ -172,6 +204,10 @@ impl Game {
         }
 
         self.current_player + 1
+    }
+
+    fn next_round(&self) -> u32 {
+        self.round + 1
     }
 
     fn print_field(&self) {
@@ -200,10 +236,6 @@ impl Game {
 
         print!("\n");
     }
-
-    fn get_winner(&self) -> Option<u8> {
-        Some(self.current_player)
-    }
 }
 
 fn input() -> String {
@@ -230,5 +262,18 @@ fn clear_screen() {
         .output()
         .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
 
-    println!("{}", String::from_utf8_lossy(&output.stdout));
+    print!("{}", String::from_utf8_lossy(&output.stdout));
+}
+
+fn print_logo() {
+    println!(
+        "
+                                 _      __    
+  ___ ___  _ __  _ __   ___  ___| |_   / _| ___  _   _ _ __ 
+ / __/ _ \\| '_ \\| '_ \\ / _ \\/ __| __| | |_ / _ \\| | | | '__|
+| (_| (_) | | | | | | |  __/ (__| |_  |  _| (_) | |_| | |   
+ \\___\\___/|_| |_|_| |_|\\___|\\___|\\__| |_|  \\___/ \\__,_|_|   
+                                                            
+    "
+    );
 }
