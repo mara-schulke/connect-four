@@ -69,9 +69,9 @@ fn main() {
 
         game.insert_coin(column);
 
-        if let Some(winner_id) = game.get_winner() {
+        if game.check_if_player_won(game.current_player) {
             clear_screen();
-            println!("Player {:?} won the game!", winner_id);
+            println!("Player {:?} won the game!", game.current_player);
             game.print_field();
             break;
         }
@@ -178,8 +178,32 @@ impl Game {
         self.field[y][x] = Some(Coin::new(self.current_player));
     }
 
-    fn get_winner(&self) -> Option<u8> {
-        Some(self.current_player)
+    fn check_if_player_won(&self, player_id: u8) -> bool {
+        fn check_row() -> bool {
+            false
+        }
+
+        fn check_col() -> bool {
+            false
+        }
+
+        fn check_diagonal_left_to_right() -> bool {
+            false
+        }
+
+        fn check_diagonal_right_to_left() -> bool {
+            false
+        }
+
+        if check_row()
+            || check_col()
+            || check_diagonal_left_to_right()
+            || check_diagonal_right_to_left()
+        {
+            return true;
+        }
+
+        false;
     }
 
     fn is_col_full(&self, x: usize) -> bool {
