@@ -1,16 +1,47 @@
+use std::io;
+
 fn main() {
     let mut game: Game = Game::new(4);
 
     loop {
+        clear_screen();
         println!(
             "Player {}, please choose a row to enter your coin!",
             game.current_player
         );
 
-        print_game_field(&game.field);
-        // game.current_player = next_player(&game);
+        game.print_field();
 
-        break;
+        // Handle input
+        println!("Enter column to insert coin:");
+        let mut column: usize;
+        loop {
+            // make this a cleaner exit (or try again)
+            column = match input().parse() {
+                Ok(val) => val,
+                Err(_) => {
+                    exit_with_message("Failed to parse input into a number!");
+                    0
+                }
+            };
+
+            if column < 8 {
+                break;
+            }
+
+            println!("Please choose a column from 0 to 7:")
+        }
+
+        game.insert_coin(column);
+
+        game.current_player = game.next_player();
+
+        if game.over {
+            let winner_id = game.get_winner().unwrap();
+            println!("Player {:?} won the game!", winner_id);
+
+            break;
+        }
     }
 }
 
@@ -44,24 +75,16 @@ impl PlayerSymbol {
 }
 
 #[derive(Debug)]
-struct Position {
-    pub x: i32,
-    pub y: i32,
-}
-
-#[derive(Debug)]
 struct Coin {
     player_id: u8,
     symbol: PlayerSymbol,
-    pos: Position,
 }
 
 impl Coin {
-    pub fn new(player_id: u8, x: i32, y: i32) -> Coin {
+    pub fn new(player_id: u8) -> Coin {
         Coin {
             player_id,
             symbol: PlayerSymbol::from_u8(player_id).unwrap(),
-            pos: Position { x, y },
         }
     }
 }
@@ -71,21 +94,23 @@ struct Game {
     players: u8,
     current_player: u8,
     round: u32,
+    over: bool,
     field: Vec<Vec<Option<Coin>>>,
 }
 
 impl Game {
     pub fn new(players: u8) -> Game {
         if players < 2 {
-            panic!("You can't play this game alone.")
+            exit_with_message("You can't play this game alone.");
         } else if players > 4 {
-            panic!("You can't play this game with more than 4 players.")
+            exit_with_message("You can't play this game with more than 4 players.");
         }
 
         Game {
             players,
             current_player: 1,
             round: 0,
+            over: false,
             // initialize a 8 x 8 field
             field: vec![
                 vec![None, None, None, None, None, None, None, None],
@@ -95,45 +120,73 @@ impl Game {
                 vec![None, None, None, None, None, None, None, None],
                 vec![None, None, None, None, None, None, None, None],
                 vec![None, None, None, None, None, None, None, None],
-                vec![
-                    None,
-                    None,
-                    Some(Coin::new(2, 3, 3)),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                ],
+                vec![None, None, None, None, None, None, None, None],
             ],
         }
     }
-}
 
-fn next_player(g: &Game) -> u8 {
-    if g.current_player == g.players {
-        return 1;
+    fn insert_coin(&mut self, col: usize) {
+        for row in &self.field[col] {
+            // println!("{:?}", row);
+        }
     }
 
-    g.current_player + 1
-}
+    fn next_player(&self) -> u8 {
+        if self.current_player == self.players {
+            return 1;
+        }
 
-fn print_game_field(field: &Vec<Vec<Option<Coin>>>) {
-    print!("\n");
+        self.current_player + 1
+    }
 
-    for col in field {
-        for coin in col {
-            print!(
-                "[{}]",
-                match coin {
-                    Some(c) => c.symbol.as_str(),
-                    None => " ",
-                }
-            );
+    fn print_field(&self) {
+        print!("\n");
+
+        for col in &self.field {
+            for coin in col {
+                print!(
+                    "[{}]",
+                    match coin {
+                        Some(c) => c.symbol.as_str(),
+                        None => " ",
+                    }
+                );
+            }
+
+            print!("\n");
         }
 
         print!("\n");
     }
 
-    print!("\n");
+    fn get_winner(&self) -> Option<u8> {
+        Some(self.current_player)
+    }
+}
+
+fn input() -> String {
+    let mut input = String::new();
+
+    match io::stdin().read_line(&mut input) {
+        Ok(_) => {}
+        Err(_) => exit_with_message(""),
+    }
+
+    // split \n of
+    input.split_off(input.len() - 1);
+
+    input
+}
+
+fn exit_with_message(msg: &str) {
+    println!("{}", msg);
+    std::process::exit(0)
+}
+
+fn clear_screen() {
+    let output = std::process::Command::new("clear")
+        .output()
+        .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
+
+    println!("{}", String::from_utf8_lossy(&output.stdout));
 }
