@@ -25,11 +25,15 @@ fn main() {
                 }
             };
 
-            if column < 8 {
-                break;
+            if column > 8 {
+                println!("Please choose a column from 1 to 8:");
+                continue;
+            } else if game.is_col_full(column) {
+                println!("Please choose a column thats not full:");
+                continue;
             }
 
-            println!("Please choose a column from 0 to 7:")
+            break;
         }
 
         game.insert_coin(column);
@@ -125,10 +129,41 @@ impl Game {
         }
     }
 
-    fn insert_coin(&mut self, col: usize) {
-        for row in &self.field[col] {
-            // println!("{:?}", row);
+    // improve performance through looping backwards -> less steps!
+    fn insert_coin(&mut self, x: usize) {
+        let mut y: usize = 0;
+
+        for row in &self.field {
+            if let Some(coin) = &row[x] {
+                println!("{:?}", coin);
+                break;
+                // exit_with_message("found coin");
+            }
+
+            y += 1;
         }
+
+        y -= 1;
+
+        self.field[y][x] = Some(Coin::new(self.current_player));
+
+        println!("{}", y);
+    }
+
+    fn is_col_full(&self, x: usize) -> bool {
+        let mut counter: usize = 0;
+
+        for row in &self.field {
+            if let Some(coin) = &row[x] {
+                counter += 1;
+            }
+        }
+
+        if counter == self.field.len() {
+            return true;
+        }
+
+        false
     }
 
     fn next_player(&self) -> u8 {
@@ -142,8 +177,15 @@ impl Game {
     fn print_field(&self) {
         print!("\n");
 
-        for col in &self.field {
-            for coin in col {
+        // number display
+        for index in 1..self.field.len() + 1 {
+            print!(" {} ", index);
+        }
+
+        print!("\n");
+
+        for row in &self.field {
+            for coin in row {
                 print!(
                     "[{}]",
                     match coin {
