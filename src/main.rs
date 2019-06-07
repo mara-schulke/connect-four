@@ -73,6 +73,7 @@ fn main() {
             clear_screen();
             println!("Player {:?} won the game!", game.current_player);
             game.print_field();
+            game.over = true;
             break;
         }
 
@@ -203,7 +204,7 @@ impl Game {
             return true;
         }
 
-        false;
+        false
     }
 
     fn is_col_full(&self, x: usize) -> bool {
