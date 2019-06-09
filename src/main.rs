@@ -4,15 +4,15 @@ use std::io;
 type PlayerId = u8;
 
 fn main() {
-    clear_screen();
-    print_logo();
+    utils::clear_screen();
+    utils::print_logo();
 
     // Input variable for the player count.
     println!("Please choose a player amount from 2 to 4:");
     let mut player_count: u8;
     // Input loop -> loop until a valid input was provided.
     loop {
-        player_count = match input().parse() {
+        player_count = match utils::input().parse() {
             // If the input is okay, assign it to player_count.
             Ok(val) => val,
             // If the input isn't okay, skip the current iteration and try it again.
@@ -39,7 +39,7 @@ fn main() {
 
     // Main Game Loop ( each round is one iteration ).
     loop {
-        clear_screen();
+        utils::clear_screen();
 
         // Display the "UI"
         println!("Player: {} - Round: {}", game.current_player, game.round);
@@ -57,7 +57,7 @@ fn main() {
         // Input loop -> loop until a valid input was provided.
         loop {
             // If the input is okay, assign it to column.
-            column = match input().parse() {
+            column = match utils::input().parse() {
                 Ok(val) => val,
                 Err(_) => {
                     // If the input isn't okay, skip the current iteration and try it again.
@@ -95,7 +95,7 @@ fn main() {
 
         // Check the Game State after the coin was inserted, since now the current player could've won.
         if game.check_if_player_won(game.current_player) {
-            clear_screen();
+            utils::clear_screen();
             println!("Player {:?} won the game!", game.current_player);
             game.print_field();
             game.over = true;
@@ -113,7 +113,7 @@ fn main() {
 // The Player Symbol enum holds all available player symbols
 // and maps the symbols to numbers and vice versa.
 #[derive(Debug)]
-enum PlayerSymbol {
+pub enum PlayerSymbol {
     One,
     Two,
     Three,
@@ -146,7 +146,7 @@ impl PlayerSymbol {
 // The Coin Struct is used to keep track of the player moves.
 // It holds the player id of the player it belongs to and its symbol.
 #[derive(Debug)]
-struct Coin {
+pub struct Coin {
     player_id: u8,
     symbol: PlayerSymbol,
 }
@@ -171,7 +171,7 @@ impl fmt::Display for Coin {
 
 // The Game Struct holds all the game state.
 #[derive(Debug)]
-struct Game {
+pub struct Game {
     // The Player Amount
     players: u8,
     // The Current Player
@@ -189,9 +189,9 @@ impl Game {
     pub fn new(players: u8) -> Game {
         // Create Boundaries to ensure enough symbols are available.
         if players < 2 {
-            exit_with_message("You can't play this game alone.");
+            utils::exit_with_message("You can't play this game alone.");
         } else if players > 4 {
-            exit_with_message("You can't play this game with more than 4 players.");
+            utils::exit_with_message("You can't play this game with more than 4 players.");
         }
 
         Game {
@@ -262,7 +262,7 @@ impl Game {
                     for i in 0..4 {
                         // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
                         if x + i < self.field[y].len()
-                            && coin_has_player_id(&self.field[y][x + i], player_id)
+                            && utils::coin_has_player_id(&self.field[y][x + i], player_id)
                         {
                             streak += 1;
                         } else {
@@ -301,7 +301,7 @@ impl Game {
                     for i in 0..4 {
                         // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
                         if y + i < self.field.len()
-                            && coin_has_player_id(&self.field[y + i][x], player_id)
+                            && utils::coin_has_player_id(&self.field[y + i][x], player_id)
                         {
                             streak += 1;
                         } else {
@@ -341,7 +341,7 @@ impl Game {
                         // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
                         if x + i < self.field[x].len()
                             && y + i < self.field.len()
-                            && coin_has_player_id(&self.field[y + i][x + i], player_id)
+                            && utils::coin_has_player_id(&self.field[y + i][x + i], player_id)
                         {
                             streak += 1;
                         } else {
@@ -380,7 +380,7 @@ impl Game {
                     for i in 0..4 {
                         // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
                         if x + i < self.field[y].len()
-                            && coin_has_player_id(&self.field[y - i][x + i], player_id)
+                            && utils::coin_has_player_id(&self.field[y - i][x + i], player_id)
                         {
                             streak += 1;
                         } else {
@@ -402,41 +402,55 @@ impl Game {
             }
         }
 
+        // If none of the blocks of above returned true - the current player didn't won.
         false
     }
 
+    // This is used to check if a given column is completly full.
     fn is_col_full(&self, x: usize) -> bool {
+        // Amount of coins in this column
         let mut counter: usize = 0;
 
+        // For every row in the field
         for row in &self.field {
+            // Check if theres a coin at a given x coordinate.
             if let Some(_coin) = &row[x] {
+                // If so, count this coin.
                 counter += 1;
             }
         }
 
+        // If the amount if coins equals the length of a column, return true.
         if counter == self.field.len() {
             return true;
         }
 
+        // Otherwise return false, since there less than 8 coins in this column.
         false
     }
 
+    // This returns the next player.
     fn next_player(&self) -> PlayerId {
+        // If the current player is the last player, return the first player.
         if self.current_player == self.players {
             return 1;
         }
 
+        // Otherwise just go on and count up.
         self.current_player + 1
     }
 
+    // Just a utility which adds 1 to the current round.
     fn next_round(&self) -> u32 {
         self.round + 1
     }
 
+    // Prints the field to the terminal.
     fn print_field(&self) {
+        // Space the field from the rest of the output.
         print!("\n");
 
-        // number display
+        // Display a number aboce each column
         for index in 1..self.field.len() + 1 {
             print!(" {} ", index);
         }
@@ -444,10 +458,14 @@ impl Game {
         print!("\n");
 
         for row in &self.field {
+            // For each coin in the field
             for coin in row {
+                // If a coin exists, output a [ ] with the player symbol inside
                 if let Some(c) = coin {
                     print!("[{}]", c);
-                } else {
+                }
+                // Else just print [ ]
+                else {
                     print!("[ ]")
                 }
             }
@@ -455,45 +473,65 @@ impl Game {
             print!("\n");
         }
 
+        // Space the field from the rest of the output.
         print!("\n");
     }
 }
 
-fn input() -> String {
-    let mut input = String::new();
+mod utils {
+    use super::*;
 
-    match io::stdin().read_line(&mut input) {
-        Ok(_) => {}
-        Err(_) => exit_with_message(""),
+    // Easily get User Input.
+    pub fn input() -> String {
+        let mut input = String::new();
+
+        // Read the next line from stdin into 'input'
+        match io::stdin().read_line(&mut input) {
+            // Everything is fine, so just go on
+            Ok(_) => {}
+            // TODO: Use an input loop.
+            // Error -> process exits.
+            Err(_) => exit_with_message("Crashed while reading from stdin."),
+        }
+
+        // This line splits the '\n' of and allows us to parse the input into types.
+        input.split_off(input.len() - 1);
+
+        // If the input equals the command :q, exit the process with 0;
+        if input == ":q" {
+            clear_screen();
+            std::process::exit(0);
+        }
+
+        // Otherwise just return the optimized input
+        input
     }
 
-    // split \n of
-    input.split_off(input.len() - 1);
-
-    if input == ":q" {
-        clear_screen();
-        std::process::exit(0);
+    // Utility to print a message and exit the process
+    pub fn exit_with_message(msg: &str) {
+        println!("{}", msg);
+        std::process::exit(0)
     }
 
-    input
-}
+    // Clears the terminal output
+    pub fn clear_screen() {
+        // Store the output of 'clear' in this variable.
+        let output = std::process::Command::new("clear").output();
 
-fn exit_with_message(msg: &str) {
-    println!("{}", msg);
-    std::process::exit(0)
-}
+        // If 'clear' gave any output -> print it
+        if let Ok(output) = output {
+            print!("{}", String::from_utf8_lossy(&output.stdout));
+        }
+        // Otherwise print some new line characters.
+        else {
+            println!("\n\n\n\n");
+        }
+    }
 
-fn clear_screen() {
-    let output = std::process::Command::new("clear")
-        .output()
-        .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
-
-    print!("{}", String::from_utf8_lossy(&output.stdout));
-}
-
-fn print_logo() {
-    println!(
-        "
+    // Prints the 'figlet connect four' output.
+    pub fn print_logo() {
+        println!(
+            "
                                  _      __    
   ___ ___  _ __  _ __   ___  ___| |_   / _| ___  _   _ _ __ 
  / __/ _ \\| '_ \\| '_ \\ / _ \\/ __| __| | |_ / _ \\| | | | '__|
@@ -501,15 +539,20 @@ fn print_logo() {
  \\___\\___/|_| |_|_| |_|\\___|\\___|\\__| |_|  \\___/ \\__,_|_|   
                                                             
     "
-    );
-}
-
-fn coin_has_player_id(coin: &Option<Coin>, player_id: u8) -> bool {
-    if let Some(c) = coin {
-        if c.player_id == player_id {
-            return true;
-        }
+        );
     }
 
-    false
+    // Checks if a coin exits and if it belongs to the given player_id.
+    pub fn coin_has_player_id(coin: &Option<Coin>, player_id: u8) -> bool {
+        // If the Coin is some
+        if let Some(c) = coin {
+            // And the coin belongs to the player -> return true;
+            if c.player_id == player_id {
+                return true;
+            }
+        }
+
+        // Otherwise false.
+        false
+    }
 }
