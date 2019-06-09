@@ -5,74 +5,92 @@ fn main() {
     print_logo();
 
     // Input variable for the player count.
-    let mut player_count: u8;
     println!("Please choose a player amount from 2 to 4:");
+    let mut player_count: u8;
     // Input loop -> loop until a valid input was provided.
     loop {
         player_count = match input().parse() {
             // If the input is okay, assign it to player_count.
             Ok(val) => val,
-            // If the input isn't okay, skip the current iteration
-            // and try it again
+            // If the input isn't okay, skip the current iteration and try it again.
             Err(_) => {
                 println!("Please enter a number, nothing else:");
                 continue;
             }
         };
 
+        // If the player count is less than 2 or bigger than 4,
+        // skip the current iteration and try it again.
         if player_count < 2 || player_count > 4 {
             println!("Please choose a player amount from 2 to 4:");
             continue;
         }
 
+        // If the input was okay and no other conditions skiped the current iteration,
+        // break the input loop and use the given value.
         break;
     }
 
+    // Create the Game State with the given player count.
     let mut game: Game = Game::new(player_count);
 
+    // Main Game Loop ( each round is one iteration ).
     loop {
         clear_screen();
 
+        // Display the "UI"
         println!("Player: {} - Round: {}", game.current_player, game.round);
-
         game.print_field();
 
+        // Stop the game if the field is full.
         if game.round > (8 * 8) {
             println!("Game draw! No fields left..");
-
             break;
         }
 
-        // Handle input
         println!("Please choose a column to enter your coin!");
+        // The Column to insert the coin.
         let mut column: usize;
+        // Input loop -> loop until a valid input was provided.
         loop {
-            // make this a cleaner exit (or try again)
+            // If the input is okay, assign it to column.
             column = match input().parse() {
                 Ok(val) => val,
                 Err(_) => {
+                    // If the input isn't okay, skip the current iteration and try it again.
                     println!("Please enter a number, nothing else:");
                     continue;
                 }
             };
 
-            if column > 8 || column < 1 {
+            // If the column is less than 1 or bigger than 8,
+            // skip the current iteration and try it again.
+            if column < 1 || column > 8 {
                 println!("Please choose a column from 1 to 8:");
                 continue;
-            } else {
+            }
+            // Else decrease the column by 1, to map the user input to the real index.
+            // eg: column 1 ( user input ) -> column 0 ( what this code uses ).
+            else {
                 column -= 1;
             }
 
+            // If the given column if full, skip this iteration and try it again.
             if game.is_col_full(column) {
                 println!("Please choose a column thats not full:");
                 continue;
             }
 
+            // If the input was okay and no other conditions skiped the current iteration,
+            // break the input loop and use the given value.
             break;
         }
 
+        // At this point, we know the column the user wants to insert his coin in is valid,
+        // so we can just insert it without error handling.
         game.insert_coin(column);
 
+        // Check the Game State after the coin was inserted, since now the current player could've won.
         if game.check_if_player_won(game.current_player) {
             clear_screen();
             println!("Player {:?} won the game!", game.current_player);
@@ -81,6 +99,9 @@ fn main() {
             break;
         }
 
+        // Next Round Logic:
+        // Set the current player to the next player
+        // and increase the round number
         game.current_player = game.next_player();
         game.round = game.next_round();
     }
