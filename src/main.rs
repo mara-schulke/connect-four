@@ -107,6 +107,8 @@ fn main() {
     }
 }
 
+// The Player Symbol enum holds all available player symbols
+// and maps the symbols to numbers and vice versa.
 #[derive(Debug)]
 enum PlayerSymbol {
     One,
@@ -116,6 +118,7 @@ enum PlayerSymbol {
 }
 
 impl PlayerSymbol {
+    // This maps a number to a PlayerSymbol if one is given
     pub fn from_u8(s: u8) -> Option<PlayerSymbol> {
         match s {
             1 => Some(PlayerSymbol::One),
@@ -126,6 +129,7 @@ impl PlayerSymbol {
         }
     }
 
+    // This function is used to map the symbols to thier string representatives.
     pub fn as_str(&self) -> &'static str {
         match self {
             PlayerSymbol::One => "x",
@@ -136,6 +140,8 @@ impl PlayerSymbol {
     }
 }
 
+// The Coin Struct is used to keep track of the player moves.
+// It holds the player id of the player it belongs to and its symbol.
 #[derive(Debug)]
 struct Coin {
     player_id: u8,
@@ -205,11 +211,11 @@ impl Game {
     }
 
     fn check_if_player_won(&self, player_id: u8) -> bool {
-        // Check for a row streak
+        // Check if the current player got a row streak
         {
             // Loop through all rows
             'outer: for y in 0..self.field.len() {
-                // each row has a highest streak -> debug purposes
+                // Each row has a highest streak -> debug purposes
                 #[allow(unused_variables)]
                 let mut highest_streak = 0;
 
