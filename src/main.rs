@@ -2,14 +2,18 @@ use std::io;
 
 fn main() {
     clear_screen();
-
     print_logo();
 
+    // Input variable for the player count.
     let mut player_count: u8;
     println!("Please choose a player amount from 2 to 4:");
+    // Input loop -> loop until a valid input was provided.
     loop {
         player_count = match input().parse() {
+            // If the input is okay, assign it to player_count.
             Ok(val) => val,
+            // If the input isn't okay, skip the current iteration
+            // and try it again
             Err(_) => {
                 println!("Please enter a number, nothing else:");
                 continue;
@@ -24,7 +28,7 @@ fn main() {
         break;
     }
 
-    let mut game: Game = Game::new(2);
+    let mut game: Game = Game::new(player_count);
 
     loop {
         clear_screen();
@@ -180,29 +184,74 @@ impl Game {
     }
 
     fn check_if_player_won(&self, player_id: u8) -> bool {
-        fn check_row() -> bool {
-            false
-        }
-
-        fn check_col() -> bool {
-            false
-        }
-
-        fn check_diagonal_left_to_right() -> bool {
-            false
-        }
-
-        fn check_diagonal_right_to_left() -> bool {
-            false
-        }
-
-        if check_row()
-            || check_col()
-            || check_diagonal_left_to_right()
-            || check_diagonal_right_to_left()
+        // Check for a row streak
         {
-            return true;
+            // Loop through all rows
+            'outer: for y in 0..self.field.len() {
+                // each row has a highest streak -> debug purposes
+                #[allow(unused_variables)]
+                let mut highest_streak = 0;
+
+                // Loop trough the first 4 coins in this row.
+                // The last 4 are unimportant since they cant start a streak,
+                // thats long enough to win the game.
+                for x in 0..self.field[y].len() / 4 {
+                    let mut streak = 0;
+
+                    // Go through this and the next 3 coins to check thier identity.
+                    for i in 0..4 {
+                        // If the coin belongs to this player, increment the streak.
+                        if coin_has_player_id(&self.field[y][x + i], player_id) {
+                            streak += 1;
+                        }
+                    }
+
+                    // Reassign the highest streak if the current one is bigger.
+                    if streak > highest_streak {
+                        highest_streak = streak;
+                    }
+
+                    // If the current streak is bigger or equal to 4,
+                    // return true to indicate that the current player won.
+                    if streak > 3 {
+                        return true;
+                    }
+                }
+            }
         }
+
+        // let mut has_col_streak = false;
+        // {
+        //     let mut streak = 0;
+
+        //     for row in &self.field {}
+
+        //     if streak >= 4 {
+        //         has_col_streak = true;
+        //     }
+        // }
+
+        // let mut has_diagonal_left_to_right_streak = false;
+        // {
+        //     let mut streak = 0;
+
+        //     for row in &self.field {}
+
+        //     if streak >= 4 {
+        //         has_diagonal_left_to_right_streak = true;
+        //     }
+        // }
+
+        // let mut has_diagonal_right_to_left_streak = false;
+        // {
+        //     let mut streak = 0;
+
+        //     for row in &self.field {}
+
+        //     if streak >= 4 {
+        //         has_diagonal_right_to_left_streak = true;
+        //     }
+        // }
 
         false
     }
@@ -211,7 +260,7 @@ impl Game {
         let mut counter: usize = 0;
 
         for row in &self.field {
-            if let Some(coin) = &row[x] {
+            if let Some(_coin) = &row[x] {
                 counter += 1;
             }
         }
@@ -274,6 +323,11 @@ fn input() -> String {
     // split \n of
     input.split_off(input.len() - 1);
 
+    if input == ":q" {
+        clear_screen();
+        std::process::exit(0);
+    }
+
     input
 }
 
@@ -283,11 +337,11 @@ fn exit_with_message(msg: &str) {
 }
 
 fn clear_screen() {
-    let output = std::process::Command::new("clear")
-        .output()
-        .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
+    // let output = std::process::Command::new("clear")
+    //     .output()
+    //     .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
 
-    print!("{}", String::from_utf8_lossy(&output.stdout));
+    // print!("{}", String::from_utf8_lossy(&output.stdout));
 }
 
 fn print_logo() {
@@ -301,4 +355,14 @@ fn print_logo() {
                                                             
     "
     );
+}
+
+fn coin_has_player_id(coin: &Option<Coin>, player_id: u8) -> bool {
+    if let Some(c) = coin {
+        if c.player_id == player_id {
+            return true;
+        }
+    }
+
+    false
 }
