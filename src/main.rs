@@ -265,6 +265,8 @@ impl Game {
                             && coin_has_player_id(&self.field[y][x + i], player_id)
                         {
                             streak += 1;
+                        } else {
+                            break;
                         }
                     }
 
@@ -302,6 +304,8 @@ impl Game {
                             && coin_has_player_id(&self.field[y + i][x], player_id)
                         {
                             streak += 1;
+                        } else {
+                            break;
                         }
                     }
 
@@ -337,9 +341,11 @@ impl Game {
                         // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
                         if x + i < self.field[x].len()
                             && y + i < self.field.len()
-                            && coin_has_player_id(&self.field[y + i][x], player_id)
+                            && coin_has_player_id(&self.field[y + i][x + i], player_id)
                         {
                             streak += 1;
+                        } else {
+                            break;
                         }
                     }
 
@@ -357,16 +363,44 @@ impl Game {
             }
         }
 
-        // let mut has_diagonal_right_to_left_streak = false;
-        // {
-        //     let mut streak = 0;
+        // Check if the current player got a diagonal streak from bottom left to top right
+        {
+            // // Loop through the first 5 rows
+            for y in (self.field.len() / 2 - 1)..self.field.len() {
+                // Each column has a highest streak -> debug purposes
+                let mut highest_streak = 0;
 
-        //     for row in &self.field {}
+                // Loop trough the first 5 coins in each row.
+                // The last 3 are unimportant since they cant start a streak,
+                // thats long enough to win the game.
+                for x in 0..(self.field[y].len() / 2 + 1) {
+                    let mut streak = 0;
 
-        //     if streak >= 4 {
-        //         has_diagonal_right_to_left_streak = true;
-        //     }
-        // }
+                    // Go through this and the next 3 coins to check thier identity.
+                    for i in 0..4 {
+                        // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
+                        if x + i < self.field[y].len()
+                            && coin_has_player_id(&self.field[y - i][x + i], player_id)
+                        {
+                            streak += 1;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    // Reassign the highest streak if the current one is bigger.
+                    if streak > highest_streak {
+                        highest_streak = streak;
+                    }
+
+                    // If the current streak is bigger or equal to 4,
+                    // return true to indicate that the current player won.
+                    if streak > 3 {
+                        return true;
+                    }
+                }
+            }
+        }
 
         false
     }
@@ -454,7 +488,7 @@ fn clear_screen() {
         .output()
         .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
 
-    // print!("{}", String::from_utf8_lossy(&output.stdout));
+    print!("{}", String::from_utf8_lossy(&output.stdout));
 }
 
 fn print_logo() {
