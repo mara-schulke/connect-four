@@ -1,4 +1,7 @@
+use std::fmt;
 use std::io;
+
+type PlayerId = u8;
 
 fn main() {
     clear_screen();
@@ -119,7 +122,7 @@ enum PlayerSymbol {
 
 impl PlayerSymbol {
     // This maps a number to a PlayerSymbol if one is given
-    pub fn from_u8(s: u8) -> Option<PlayerSymbol> {
+    pub fn from_player_id(s: PlayerId) -> Option<PlayerSymbol> {
         match s {
             1 => Some(PlayerSymbol::One),
             2 => Some(PlayerSymbol::Two),
@@ -149,25 +152,42 @@ struct Coin {
 }
 
 impl Coin {
-    pub fn new(player_id: u8) -> Coin {
+    // Create a new coin from a player id.
+    pub fn new(player_id: PlayerId) -> Coin {
         Coin {
             player_id,
-            symbol: PlayerSymbol::from_u8(player_id).unwrap(),
+            symbol: PlayerSymbol::from_player_id(player_id).unwrap(),
         }
     }
 }
 
+// Implement fmt::Display to convienently print out coins.
+impl fmt::Display for Coin {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // This uses the string representative of the symbol.
+        write!(f, "{}", self.symbol.as_str(),)
+    }
+}
+
+// The Game Struct holds all the game state.
 #[derive(Debug)]
 struct Game {
+    // The Player Amount
     players: u8,
+    // The Current Player
     current_player: u8,
+    // The Round Number
     round: u32,
+    // If the Game is Over or Not
     over: bool,
+    // The Game Field of Coins
     field: Vec<Vec<Option<Coin>>>,
 }
 
 impl Game {
+    // Create a new Game Struct from a player count.
     pub fn new(players: u8) -> Game {
+        // Create Boundaries to ensure enough symbols are available.
         if players < 2 {
             exit_with_message("You can't play this game alone.");
         } else if players > 4 {
@@ -179,7 +199,7 @@ impl Game {
             current_player: 1,
             round: 1,
             over: false,
-            // initialize a 8 x 8 field
+            // Initialize a 8 x 8 field
             field: vec![
                 vec![None, None, None, None, None, None, None, None],
                 vec![None, None, None, None, None, None, None, None],
@@ -193,24 +213,38 @@ impl Game {
         }
     }
 
-    // improve performance through looping backwards -> less steps!
+    // Insert a coin into the game field, into a specific column
     fn insert_coin(&mut self, x: usize) {
+        // Y Pos of the Field to insert the coin in.
         let mut y: usize = 0;
 
+        // TODO: Improve performance through looping backwards -> less steps!
+        // Loop trough all rows in the Field.
         for row in &self.field {
+            // If a coin is in the current field -> break the loop.
             if let Some(_) = &row[x] {
                 break;
             }
 
+            // Otherwise just increase the Y Pos.
             y += 1;
         }
 
+        // Decrease it by 1 to get the field above the first coin.
         y -= 1;
 
+        // Create a new Coin in this field.
         self.field[y][x] = Some(Coin::new(self.current_player));
     }
 
-    fn check_if_player_won(&self, player_id: u8) -> bool {
+    // Checks if a player, which id gets passed to the function, has won.
+    fn check_if_player_won(&self, player_id: PlayerId) -> bool {
+        // This Function is devided into 4 Sections:
+        // 1. Check for a row streak
+        // 2. Check for a column streak
+        // 3. Check for a diagonal streak from left to right
+        // 4. Check for a diagonal streak from right to left
+
         // Check if the current player got a row streak
         {
             // Loop through all rows
@@ -299,7 +333,7 @@ impl Game {
         false
     }
 
-    fn next_player(&self) -> u8 {
+    fn next_player(&self) -> PlayerId {
         if self.current_player == self.players {
             return 1;
         }
@@ -323,13 +357,11 @@ impl Game {
 
         for row in &self.field {
             for coin in row {
-                print!(
-                    "[{}]",
-                    match coin {
-                        Some(c) => c.symbol.as_str(),
-                        None => " ",
-                    }
-                );
+                if let Some(c) = coin {
+                    print!("[{}]", c);
+                } else {
+                    print!("[ ]")
+                }
             }
 
             print!("\n");
@@ -364,11 +396,11 @@ fn exit_with_message(msg: &str) {
 }
 
 fn clear_screen() {
-    // let output = std::process::Command::new("clear")
-    //     .output()
-    //     .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
+    let output = std::process::Command::new("clear")
+        .output()
+        .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
 
-    // print!("{}", String::from_utf8_lossy(&output.stdout));
+    print!("{}", String::from_utf8_lossy(&output.stdout));
 }
 
 fn print_logo() {
