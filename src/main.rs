@@ -242,27 +242,28 @@ impl Game {
         // This Function is devided into 4 Sections:
         // 1. Check for a row streak
         // 2. Check for a column streak
-        // 3. Check for a diagonal streak from left to right
-        // 4. Check for a diagonal streak from right to left
+        // 3. Check for a diagonal streak from top left to bottom right
+        // 4. Check for a diagonal streak from bottom left to top right
 
         // Check if the current player got a row streak
         {
             // Loop through all rows
-            'outer: for y in 0..self.field.len() {
+            for y in 0..self.field.len() {
                 // Each row has a highest streak -> debug purposes
-                #[allow(unused_variables)]
                 let mut highest_streak = 0;
 
-                // Loop trough the first 4 coins in this row.
-                // The last 4 are unimportant since they cant start a streak,
+                // Loop trough the first 5 coins in each row.
+                // The last 3 are unimportant since they cant start a streak,
                 // thats long enough to win the game.
-                for x in 0..self.field[y].len() / 4 {
+                for x in 0..(self.field[y].len() / 2 + 1) {
                     let mut streak = 0;
 
                     // Go through this and the next 3 coins to check thier identity.
                     for i in 0..4 {
-                        // If the coin belongs to this player, increment the streak.
-                        if coin_has_player_id(&self.field[y][x + i], player_id) {
+                        // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
+                        if x + i < self.field[y].len()
+                            && coin_has_player_id(&self.field[y][x + i], player_id)
+                        {
                             streak += 1;
                         }
                     }
@@ -281,27 +282,80 @@ impl Game {
             }
         }
 
-        // let mut has_col_streak = false;
-        // {
-        //     let mut streak = 0;
+        // Check if the current player got a column streak
+        {
+            // Loop through the first 5 rows
+            for y in 0..(self.field.len() / 2 + 1) {
+                // Each column has a highest streak -> debug purposes
+                let mut highest_streak = 0;
 
-        //     for row in &self.field {}
+                // Loop trough the first 5 coins in each row.
+                // The last 3 are unimportant since they cant start a streak,
+                // thats long enough to win the game.
+                for x in 0..self.field[y].len() {
+                    let mut streak = 0;
 
-        //     if streak >= 4 {
-        //         has_col_streak = true;
-        //     }
-        // }
+                    // Go through this and the next 3 coins to check thier identity.
+                    for i in 0..4 {
+                        // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
+                        if y + i < self.field.len()
+                            && coin_has_player_id(&self.field[y + i][x], player_id)
+                        {
+                            streak += 1;
+                        }
+                    }
 
-        // let mut has_diagonal_left_to_right_streak = false;
-        // {
-        //     let mut streak = 0;
+                    // Reassign the highest streak if the current one is bigger.
+                    if streak > highest_streak {
+                        highest_streak = streak;
+                    }
 
-        //     for row in &self.field {}
+                    // If the current streak is bigger or equal to 4,
+                    // return true to indicate that the current player won.
+                    if streak > 3 {
+                        return true;
+                    }
+                }
+            }
+        }
 
-        //     if streak >= 4 {
-        //         has_diagonal_left_to_right_streak = true;
-        //     }
-        // }
+        // Check if the current player got a diagonal streak from top left to bottom right
+        {
+            // Loop through the first 5 rows
+            for y in 0..(self.field.len() / 2 + 1) {
+                // Each column has a highest streak -> debug purposes
+                let mut highest_streak = 0;
+
+                // Loop trough the first 5 coins in each row.
+                // The last 3 are unimportant since they cant start a streak,
+                // thats long enough to win the game.
+                for x in 0..(self.field[y].len() / 2 + 1) {
+                    let mut streak = 0;
+
+                    // Go through this and the next 3 coins to check thier identity.
+                    for i in 0..4 {
+                        // If the coin belongs to this player and doesnt overflow the vector, increment the streak.
+                        if x + i < self.field[x].len()
+                            && y + i < self.field.len()
+                            && coin_has_player_id(&self.field[y + i][x], player_id)
+                        {
+                            streak += 1;
+                        }
+                    }
+
+                    // Reassign the highest streak if the current one is bigger.
+                    if streak > highest_streak {
+                        highest_streak = streak;
+                    }
+
+                    // If the current streak is bigger or equal to 4,
+                    // return true to indicate that the current player won.
+                    if streak > 3 {
+                        return true;
+                    }
+                }
+            }
+        }
 
         // let mut has_diagonal_right_to_left_streak = false;
         // {
@@ -400,7 +454,7 @@ fn clear_screen() {
         .output()
         .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
 
-    print!("{}", String::from_utf8_lossy(&output.stdout));
+    // print!("{}", String::from_utf8_lossy(&output.stdout));
 }
 
 fn print_logo() {
