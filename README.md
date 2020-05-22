@@ -1,6 +1,6 @@
 # connect-four
 
-A simple implementation of connect four in rust.
+A compact implementation of connect four in rust.
 
 <img src="./assets/connect-four.gif" style="width: 100%;" />
 
