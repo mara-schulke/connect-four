@@ -2,6 +2,12 @@
 
 A simple implementation of connect four in rust.
 
+<img src="./assets/connect-four.gif" style="width: 100%;" />
+
+## Run the game
+
+At the moment there no pre-built binaries - but you can build it locally with `cargo`.
+
 ```bash
 # run the game
 cargo run
