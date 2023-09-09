@@ -1,0 +1,7 @@
+[package]
+name = "connect-four"
+version = "0.1.0"
+authors = ["Mara Schulke <mara@schulke.xyz>"]
+edition = "2018"
+
+[dependencies]
